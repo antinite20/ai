@@ -1,18 +1,18 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import "@/App.css";
-import { Upload, Home, Loader2, CheckCircle, AlertCircle, X, Info, TrendingUp, List, FileText } from "lucide-react";
+import { Upload, Home, Loader2, CheckCircle, AlertCircle, X, Info, TrendingUp, List, FileText, Sun, Moon } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Classification badge colors
+// Classification badge colors - works for both themes
 const classificationStyles = {
-  "Low Income": { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/50", icon: "🔴" },
-  "Lower-Middle": { bg: "bg-orange-500/20", text: "text-orange-400", border: "border-orange-500/50", icon: "🟠" },
-  "Middle": { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
-  "Middle Income": { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
-  "Upper-Middle": { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/50", icon: "🔵" },
-  "High Income": { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/50", icon: "🟢" },
+  "Low Income": { bg: "bg-red-500/20", text: "text-red-600 dark:text-red-400", border: "border-red-500/50", icon: "🔴" },
+  "Lower-Middle": { bg: "bg-orange-500/20", text: "text-orange-600 dark:text-orange-400", border: "border-orange-500/50", icon: "🟠" },
+  "Middle": { bg: "bg-yellow-500/20", text: "text-yellow-600 dark:text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
+  "Middle Income": { bg: "bg-yellow-500/20", text: "text-yellow-600 dark:text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
+  "Upper-Middle": { bg: "bg-blue-500/20", text: "text-blue-600 dark:text-blue-400", border: "border-blue-500/50", icon: "🔵" },
+  "High Income": { bg: "bg-green-500/20", text: "text-green-600 dark:text-green-400", border: "border-green-500/50", icon: "🟢" },
 };
 
 // Parse JSON from response text
@@ -20,13 +20,11 @@ const parseAnalysisResult = (resultText) => {
   if (!resultText) return null;
   
   try {
-    // Try to extract JSON from the response
     const jsonMatch = resultText.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[1]);
     }
     
-    // Try direct JSON parse
     const jsonStart = resultText.indexOf('{');
     const jsonEnd = resultText.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd !== -1) {
@@ -60,6 +58,22 @@ function App() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(true);
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setDarkMode(savedTheme === 'dark');
+    }
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+  };
 
   // Handle file selection
   const handleFileChange = (e) => {
@@ -68,7 +82,6 @@ function App() {
     setError(null);
     setResults([]);
     
-    // Create previews
     const newPreviews = selectedFiles.map(file => ({
       name: file.name,
       url: URL.createObjectURL(file)
@@ -163,32 +176,32 @@ function App() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{style.icon}</span>
                 <div>
-                  <h4 className={`text-lg font-bold ${style.text}`}>
+                  <h4 className={`text-lg font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
                     {parsed.classification}
                   </h4>
-                  <p className="text-slate-400 text-sm">Desil {parsed.desil_range}</p>
+                  <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Desil {parsed.desil_range}</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className={`text-2xl font-bold ${style.text}`}>
+                <div className={`text-2xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
                   {parsed.confidence_percentage}%
                 </div>
-                <p className="text-slate-400 text-xs">Confidence: {parsed.confidence}</p>
+                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Confidence: {parsed.confidence}</p>
               </div>
             </div>
           </div>
 
           {/* Key Observations */}
           {parsed.key_observations && parsed.key_observations.length > 0 && (
-            <div className="bg-slate-700/30 rounded-xl p-4">
-              <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <List className="w-4 h-4 text-emerald-400" />
+            <div className={`rounded-xl p-4 ${darkMode ? 'bg-slate-700/30' : 'bg-slate-100'}`}>
+              <h5 className={`font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                <List className="w-4 h-4 text-emerald-500" />
                 Key Observations
               </h5>
               <ul className="space-y-2">
                 {parsed.key_observations.map((obs, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-slate-300 text-sm">
-                    <span className="text-emerald-400 mt-1">•</span>
+                  <li key={idx} className={`flex items-start gap-2 text-sm ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <span className="text-emerald-500 mt-1">•</span>
                     <span>{obs}</span>
                   </li>
                 ))}
@@ -198,12 +211,12 @@ function App() {
 
           {/* Detailed Reasoning */}
           {parsed.detailed_reasoning && (
-            <div className="bg-slate-700/30 rounded-xl p-4">
-              <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-400" />
+            <div className={`rounded-xl p-4 ${darkMode ? 'bg-slate-700/30' : 'bg-slate-100'}`}>
+              <h5 className={`font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                <FileText className="w-4 h-4 text-blue-500" />
                 Detailed Analysis
               </h5>
-              <p className="text-slate-300 text-sm leading-relaxed">
+              <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                 {parsed.detailed_reasoning}
               </p>
             </div>
@@ -215,29 +228,53 @@ function App() {
     // Fallback: show raw text if JSON parsing fails
     return (
       <div 
-        className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap"
+        className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}
         dangerouslySetInnerHTML={{ 
           __html: result.result
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+            .replace(/\*\*(.*?)\*\*/g, `<strong class="${darkMode ? 'text-white' : 'text-slate-900'}">$1</strong>`)
             .replace(/\n/g, '<br/>')
         }}
       />
     );
   };
 
+  // Theme classes
+  const themeClasses = {
+    bg: darkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-white to-slate-100',
+    header: darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white/80 border-slate-200',
+    card: darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200 shadow-sm',
+    text: darkMode ? 'text-white' : 'text-slate-900',
+    textMuted: darkMode ? 'text-slate-400' : 'text-slate-600',
+    input: darkMode ? 'bg-slate-700/50 border-slate-600 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
+    dropzone: darkMode ? 'border-slate-600 hover:border-emerald-500' : 'border-slate-300 hover:border-emerald-500',
+    resultCard: darkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200',
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className={`min-h-screen ${themeClasses.bg}`}>
       {/* Header */}
-      <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-10">
+      <header className={`backdrop-blur-sm border-b sticky top-0 z-10 ${themeClasses.header}`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/20 rounded-lg">
-              <Home className="w-6 h-6 text-emerald-400" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/20 rounded-lg">
+                <Home className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div>
+                <h1 className={`text-xl font-bold ${themeClasses.text}`}>House Socioeconomic Analyzer</h1>
+                <p className={`text-sm ${themeClasses.textMuted}`}>AI-powered housing assessment for Indonesia</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">House Socioeconomic Analyzer</h1>
-              <p className="text-sm text-slate-400">AI-powered housing assessment for Indonesia</p>
-            </div>
+            
+            {/* Theme Toggle Button */}
+            <button
+              data-testid="theme-toggle"
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'}`}
+              aria-label="Toggle theme"
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </header>
@@ -247,9 +284,9 @@ function App() {
           {/* Left Column - Upload */}
           <div className="space-y-6">
             {/* Upload Section */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Upload className="w-5 h-5 text-emerald-400" />
+            <div className={`backdrop-blur-sm rounded-2xl border p-6 ${themeClasses.card}`}>
+              <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${themeClasses.text}`}>
+                <Upload className="w-5 h-5 text-emerald-500" />
                 Upload House Images
               </h2>
               
@@ -258,13 +295,13 @@ function App() {
                 data-testid="dropzone"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                className="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center hover:border-emerald-500 transition-colors cursor-pointer"
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${themeClasses.dropzone}`}
                 onClick={() => document.getElementById('fileInput').click()}
               >
-                <Upload className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                <p className="text-slate-300 mb-2">Drag & drop images here</p>
-                <p className="text-slate-500 text-sm">or click to browse</p>
-                <p className="text-slate-600 text-xs mt-2">PNG, JPG, JPEG, WEBP</p>
+                <Upload className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                <p className={`mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>Drag & drop images here</p>
+                <p className={`text-sm ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>or click to browse</p>
+                <p className={`text-xs mt-2 ${darkMode ? 'text-slate-600' : 'text-slate-400'}`}>PNG, JPG, JPEG, WEBP</p>
                 <input
                   id="fileInput"
                   data-testid="file-input"
@@ -279,7 +316,7 @@ function App() {
               {/* Image Previews */}
               {previews.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-medium text-slate-300 mb-3">
+                  <h3 className={`text-sm font-medium mb-3 ${themeClasses.textMuted}`}>
                     Uploaded Images ({previews.length})
                   </h3>
                   <div className="grid grid-cols-3 gap-3">
@@ -288,7 +325,7 @@ function App() {
                         <img
                           src={preview.url}
                           alt={preview.name}
-                          className="w-full h-24 object-cover rounded-lg border border-slate-600"
+                          className={`w-full h-24 object-cover rounded-lg border ${darkMode ? 'border-slate-600' : 'border-slate-300'}`}
                         />
                         <button
                           data-testid={`remove-image-${index}`}
@@ -297,7 +334,7 @@ function App() {
                         >
                           <X className="w-3 h-3" />
                         </button>
-                        <p className="text-xs text-slate-400 truncate mt-1">{preview.name}</p>
+                        <p className={`text-xs truncate mt-1 ${themeClasses.textMuted}`}>{preview.name}</p>
                       </div>
                     ))}
                   </div>
@@ -306,7 +343,7 @@ function App() {
 
               {/* Context Input */}
               <div className="mt-6">
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
+                <label className={`text-sm font-medium mb-2 block ${themeClasses.textMuted}`}>
                   Additional Context (Optional)
                 </label>
                 <textarea
@@ -314,7 +351,7 @@ function App() {
                   value={context}
                   onChange={(e) => setContext(e.target.value)}
                   placeholder="E.g., 'House in rural Java' or 'Front view of the property'"
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                  className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none ${themeClasses.input}`}
                   rows={3}
                 />
               </div>
@@ -324,7 +361,7 @@ function App() {
                 data-testid="analyze-button"
                 onClick={analyzeImages}
                 disabled={files.length === 0 || loading}
-                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-500 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -342,16 +379,16 @@ function App() {
               {/* Error Message */}
               {error && (
                 <div data-testid="error-message" className="mt-4 bg-red-500/20 border border-red-500 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-300 text-sm">{error}</p>
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-500 text-sm">{error}</p>
                 </div>
               )}
             </div>
 
             {/* Info Card */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
-              <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                <Info className="w-4 h-4 text-blue-400" />
+            <div className={`backdrop-blur-sm rounded-2xl border p-6 ${themeClasses.card}`}>
+              <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${themeClasses.text}`}>
+                <Info className="w-4 h-4 text-blue-500" />
                 Classification Categories
               </h3>
               <div className="space-y-2">
@@ -364,8 +401,8 @@ function App() {
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                    <span className="text-slate-300 text-sm">{item.label}</span>
-                    <span className="text-slate-500 text-xs">({item.desil})</span>
+                    <span className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>{item.label}</span>
+                    <span className={`text-xs ${themeClasses.textMuted}`}>({item.desil})</span>
                   </div>
                 ))}
               </div>
@@ -374,14 +411,14 @@ function App() {
 
           {/* Right Column - Results */}
           <div className="space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 min-h-[400px]">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <div className={`backdrop-blur-sm rounded-2xl border p-6 min-h-[400px] ${themeClasses.card}`}>
+              <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${themeClasses.text}`}>
+                <TrendingUp className="w-5 h-5 text-emerald-500" />
                 Analysis Results
               </h2>
               
               {results.length === 0 && !loading && (
-                <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                <div className={`flex flex-col items-center justify-center h-64 ${themeClasses.textMuted}`}>
                   <Home className="w-16 h-16 mb-4 opacity-50" />
                   <p>Upload images to see analysis results</p>
                 </div>
@@ -389,9 +426,9 @@ function App() {
 
               {loading && (
                 <div className="flex flex-col items-center justify-center h-64">
-                  <Loader2 className="w-12 h-12 text-emerald-400 animate-spin mb-4" />
-                  <p className="text-slate-400">Analyzing house images...</p>
-                  <p className="text-slate-500 text-sm mt-2">This may take a moment</p>
+                  <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
+                  <p className={themeClasses.textMuted}>Analyzing house images...</p>
+                  <p className={`text-sm mt-2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>This may take a moment</p>
                 </div>
               )}
 
@@ -401,17 +438,17 @@ function App() {
                     <div
                       key={index}
                       data-testid={`result-card-${index}`}
-                      className="bg-slate-700/30 rounded-xl p-5 border border-slate-600"
+                      className={`rounded-xl p-5 border ${themeClasses.resultCard}`}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-white font-medium flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-slate-400" />
+                        <h3 className={`font-medium flex items-center gap-2 ${themeClasses.text}`}>
+                          <FileText className={`w-4 h-4 ${themeClasses.textMuted}`} />
                           {result.filename}
                         </h3>
                         {result.success ? (
-                          <CheckCircle className="w-5 h-5 text-emerald-400" />
+                          <CheckCircle className="w-5 h-5 text-emerald-500" />
                         ) : (
-                          <AlertCircle className="w-5 h-5 text-red-400" />
+                          <AlertCircle className="w-5 h-5 text-red-500" />
                         )}
                       </div>
                       
@@ -419,7 +456,7 @@ function App() {
                         renderParsedResult(result)
                       ) : (
                         <div className="bg-red-500/20 rounded-lg p-4">
-                          <p className="text-red-400 text-sm">{result.error}</p>
+                          <p className="text-red-500 text-sm">{result.error}</p>
                         </div>
                       )}
                     </div>
@@ -432,8 +469,8 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-700 mt-12 py-6">
-        <p className="text-center text-slate-500 text-sm">
+      <footer className={`border-t mt-12 py-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+        <p className={`text-center text-sm ${themeClasses.textMuted}`}>
           Built with React + Gemini Vision AI | For Educational Purposes
         </p>
       </footer>
