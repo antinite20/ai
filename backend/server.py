@@ -1,89 +1,168 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+"""
+House Socioeconomic Classification API
+Backend for analyzing house images
+"""
+
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, List
+import base64
+import asyncio
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Import the LLM integration
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+
+# ============================================
+# CONFIGURATION
+# ============================================
+API_KEY = os.environ.get("EMERGENT_LLM_KEY")
+
+# System prompt for house analysis
+SYSTEM_PROMPT = """You are an expert socioeconomic analyst specializing in housing assessment in Indonesia.
+
+Your task is to analyze house images and determine the likely socioeconomic status of the owner based on visual indicators.
+
+When analyzing a house, evaluate these factors:
+1. **Structure & Size**: House dimensions, number of floors, overall footprint
+2. **Construction Materials**: Wood, brick, cement, quality of materials
+3. **Roof Condition**: Type (tin, tile, concrete), condition, maintenance
+4. **Wall Condition**: Paint, cracks, weathering, finishing quality
+5. **Windows & Doors**: Quality, material, security features
+6. **Surroundings**: Yard condition, fencing, landscaping
+7. **Visible Amenities**: Garage, water tank, satellite dish, AC units
+8. **Interior (if visible)**: Furniture, flooring, cleanliness
+
+Based on Indonesian socioeconomic standards (Desil), classify into:
+- **Low Income (Miskin)** - Desil 1-2: Basic construction, minimal amenities, signs of poverty
+- **Lower-Middle Income** - Desil 3-4: Simple but maintained housing
+- **Middle Income** - Desil 5-6: Standard housing with basic modern amenities
+- **Upper-Middle Income** - Desil 7-8: Well-maintained, quality construction, good amenities
+- **High Income (Kaya)** - Desil 9-10: Luxury construction, premium materials, extensive amenities
+
+Always provide your response in this JSON format:
+{
+    "classification": "Low Income / Lower-Middle / Middle / Upper-Middle / High Income",
+    "desil_range": "1-2 / 3-4 / 5-6 / 7-8 / 9-10",
+    "confidence": "Low / Medium / High",
+    "confidence_percentage": 85,
+    "key_observations": ["observation 1", "observation 2", "observation 3"],
+    "detailed_reasoning": "Full paragraph explaining the analysis..."
+}
+
+Be objective and base your analysis solely on visible evidence in the images."""
 
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# ============================================
+# FASTAPI APP
+# ============================================
+app = FastAPI(title="House Socioeconomic Analyzer API")
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+class AnalysisResult(BaseModel):
+    classification: str
+    desil_range: str
+    confidence: str
+    confidence_percentage: int
+    key_observations: List[str]
+    detailed_reasoning: str
+
+
+class AnalysisResponse(BaseModel):
+    success: bool
+    filename: str
+    result: Optional[str] = None
+    error: Optional[str] = None
+
+
+# ============================================
+# API ENDPOINTS
+# ============================================
+
+@app.get("/api/")
+def root():
+    return {"message": "House Socioeconomic Analyzer API is running!"}
+
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "api_key_configured": bool(API_KEY)}
+
+
+@app.post("/api/analyze", response_model=AnalysisResponse)
+async def analyze_house(
+    file: UploadFile = File(...),
+    context: Optional[str] = Form(None)
+):
+    """
+    Analyze a house image and return socioeconomic classification
+    """
+    try:
+        # Validate file type
+        allowed_types = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed: PNG, JPG, JPEG, WEBP"
+            )
+        
+        # Read and encode image
+        contents = await file.read()
+        image_base64 = base64.b64encode(contents).decode('utf-8')
+        
+        # Create chat instance
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"house-analysis-{os.urandom(4).hex()}",
+            system_message=SYSTEM_PROMPT
+        )
+        chat.with_model("gemini", "gemini-3-flash-preview")
+        
+        # Create image content
+        image_content = ImageContent(image_base64=image_base64)
+        
+        # Build prompt
+        prompt = "Please analyze this house image and determine the socioeconomic status of the owner. Return your response in the JSON format specified."
+        if context:
+            prompt += f"\n\nAdditional context: {context}"
+        
+        # Create message with image
+        user_message = UserMessage(
+            text=prompt,
+            file_contents=[image_content]
+        )
+        
+        # Get response
+        response = await chat.send_message(user_message)
+        
+        return AnalysisResponse(
+            success=True,
+            filename=file.filename,
+            result=response
+        )
+        
+    except Exception as e:
+        return AnalysisResponse(
+            success=False,
+            filename=file.filename if file else "unknown",
+            error=str(e)
+        )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
