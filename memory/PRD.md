@@ -13,27 +13,30 @@ Build an AI-powered application to analyze house images and classify the socioec
 - AI-powered analysis using vision models
 - Classification into Indonesian Desil categories (1-10)
 - Detailed reasoning with confidence level
-- Simple, editable Python + Streamlit code
+- Clean, modern UI
 
 ## Architecture
-- **Frontend/App**: Streamlit (Python)
+- **Frontend**: React.js with Tailwind CSS
+- **Backend**: FastAPI (Python)
 - **AI Model**: Gemini 3 Flash (via Emergent LLM Key)
-- **Port**: 8501
+- **Ports**: Frontend 3000, Backend 8001
 
 ## What's Been Implemented (Jan 2026)
-- [x] Streamlit app with image upload
-- [x] Multi-image support with preview
+- [x] React frontend with drag-drop image upload
+- [x] FastAPI backend with /api/analyze endpoint
+- [x] Multi-image support with previews
 - [x] Gemini Vision AI integration
-- [x] Detailed analysis output (classification + reasoning)
-- [x] Sidebar with app info and tips
+- [x] Detailed analysis output (classification + confidence + reasoning)
+- [x] Classification categories display
 - [x] Additional context input field
-- [x] Test script for CLI testing
-- [x] All tests passed (100%)
+- [x] Loading states and error handling
+- [x] All tests passed (Backend: 100%, Frontend: 100%)
 
 ## Files Created
-- `/app/backend/streamlit_app.py` - Main Streamlit application
+- `/app/backend/server.py` - FastAPI backend with analyze endpoint
+- `/app/frontend/src/App.js` - React frontend
+- `/app/backend/streamlit_app.py` - Streamlit version (alternative)
 - `/app/backend/test_analysis.py` - CLI test script
-- `/app/backend/run_streamlit.sh` - Run script
 - `/app/image_testing.md` - Testing guidelines
 
 ## Classification Categories
