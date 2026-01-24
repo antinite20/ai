@@ -65,27 +65,20 @@ Be objective and base your analysis solely on visible evidence in the images."""
 def analyze_house_image(image_data, additional_context: str = "") -> str:
     """
     Analyze house image using Google Gemini Vision AI
-    
-    Args:
-        image_data: PIL Image object
-        additional_context: Optional additional context about the image
-    
-    Returns:
-        Analysis result as string
     """
     try:
-        # Initialize the model
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
-        # Build the prompt
         prompt = f"{SYSTEM_PROMPT}\n\nPlease analyze this house image and determine the socioeconomic status of the owner."
         if additional_context:
             prompt += f"\n\nAdditional context: {additional_context}"
         
-        # Generate response with image
         response = model.generate_content([prompt, image_data])
         
-        return response.text
+        if response and response.text:
+            return response.text
+        else:
+            return "No response from AI"
         
     except Exception as e:
         return f"Error analyzing image: {str(e)}"
@@ -102,53 +95,169 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for better UI
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1E3A5F;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.1rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .result-box {
-        background-color: #f0f7ff;
-        border-left: 5px solid #1E88E5;
-        padding: 20px;
-        border-radius: 5px;
-        margin: 10px 0;
-    }
-    .info-box {
-        background-color: #fff3cd;
-        border-left: 5px solid #ffc107;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
-    }
-    .stButton>button {
-        background-color: #1E88E5;
-        color: white;
-        font-size: 1.1rem;
-        padding: 0.5rem 2rem;
-        border-radius: 5px;
-        width: 100%;
-    }
-    .stButton>button:hover {
-        background-color: #1565C0;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Initialize theme in session state
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'  # Default to light theme
 
-# Header
-st.markdown('<p class="main-header">🏠 House Socioeconomic Analyzer</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Upload house images to analyze the owner\'s socioeconomic status using AI</p>', unsafe_allow_html=True)
+# Toggle theme function
+def toggle_theme():
+    if st.session_state.theme == 'light':
+        st.session_state.theme = 'dark'
+    else:
+        st.session_state.theme = 'light'
+
+# Theme-based CSS
+if st.session_state.theme == 'dark':
+    st.markdown("""
+    <style>
+        /* Dark Theme */
+        .stApp {
+            background-color: #1a1a2e;
+            color: #ffffff;
+        }
+        .main-header {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4ade80;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .sub-header {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .result-box {
+            background-color: #2d2d44;
+            border-left: 5px solid #4ade80;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #e5e7eb;
+        }
+        .info-box {
+            background-color: #2d2d44;
+            border-left: 5px solid #fbbf24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #e5e7eb;
+        }
+        .classification-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .low-income { background-color: #ef4444; color: white; }
+        .lower-middle { background-color: #f97316; color: white; }
+        .middle-income { background-color: #eab308; color: black; }
+        .upper-middle { background-color: #3b82f6; color: white; }
+        .high-income { background-color: #22c55e; color: white; }
+        
+        .stTextArea textarea {
+            background-color: #2d2d44 !important;
+            color: #ffffff !important;
+            border-color: #4b5563 !important;
+        }
+        .stFileUploader {
+            background-color: #2d2d44;
+            border-radius: 10px;
+        }
+        section[data-testid="stSidebar"] {
+            background-color: #16213e;
+        }
+        section[data-testid="stSidebar"] * {
+            color: #e5e7eb !important;
+        }
+        .stButton>button {
+            background-color: #4ade80;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        .stButton>button:hover {
+            background-color: #22c55e;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+        /* Light Theme */
+        .stApp {
+            background-color: #ffffff;
+            color: #1f2937;
+        }
+        .main-header {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #059669;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .sub-header {
+            font-size: 1.1rem;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .result-box {
+            background-color: #f0fdf4;
+            border-left: 5px solid #059669;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #1f2937;
+        }
+        .info-box {
+            background-color: #fffbeb;
+            border-left: 5px solid #f59e0b;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #1f2937;
+        }
+        .classification-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .low-income { background-color: #fecaca; color: #991b1b; border: 2px solid #ef4444; }
+        .lower-middle { background-color: #fed7aa; color: #9a3412; border: 2px solid #f97316; }
+        .middle-income { background-color: #fef08a; color: #854d0e; border: 2px solid #eab308; }
+        .upper-middle { background-color: #bfdbfe; color: #1e40af; border: 2px solid #3b82f6; }
+        .high-income { background-color: #bbf7d0; color: #166534; border: 2px solid #22c55e; }
+        
+        section[data-testid="stSidebar"] {
+            background-color: #f3f4f6;
+        }
+        .stButton>button {
+            background-color: #059669;
+            color: white;
+            font-weight: bold;
+        }
+        .stButton>button:hover {
+            background-color: #047857;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Header with theme toggle
+col_title, col_toggle = st.columns([6, 1])
+
+with col_title:
+    st.markdown('<p class="main-header">🏠 House Socioeconomic Analyzer</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Upload house images to analyze the owner\'s socioeconomic status using AI</p>', unsafe_allow_html=True)
+
+with col_toggle:
+    theme_icon = "🌙" if st.session_state.theme == 'light' else "☀️"
+    theme_label = "Dark" if st.session_state.theme == 'light' else "Light"
+    if st.button(f"{theme_icon} {theme_label}", key="theme_toggle", on_click=toggle_theme):
+        pass
 
 # Check API Key
 if not GOOGLE_API_KEY:
@@ -169,11 +278,11 @@ with st.sidebar:
     - 🏠 Visible amenities
     
     **Classification Categories:**
-    - Low Income (Desil 1-2)
-    - Lower-Middle (Desil 3-4)
-    - Middle Income (Desil 5-6)
-    - Upper-Middle (Desil 7-8)
-    - High Income (Desil 9-10)
+    - 🔴 Low Income (Desil 1-2)
+    - 🟠 Lower-Middle (Desil 3-4)
+    - 🟡 Middle Income (Desil 5-6)
+    - 🔵 Upper-Middle (Desil 7-8)
+    - 🟢 High Income (Desil 9-10)
     """)
     
     st.divider()
@@ -197,7 +306,6 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.subheader("📤 Upload House Images")
     
-    # File uploader - multiple files
     uploaded_files = st.file_uploader(
         "Choose house images",
         type=['png', 'jpg', 'jpeg', 'webp'],
@@ -205,17 +313,14 @@ with col1:
         help="Upload one or more images of the house (front, side, interior)"
     )
     
-    # Optional context input
     additional_context = st.text_area(
         "Additional Context (Optional)",
         placeholder="E.g., 'This is a house in rural Java' or 'Front view of the house'",
         help="Provide any additional information about the images"
     )
     
-    # Display uploaded images
     if uploaded_files:
         st.subheader("📷 Uploaded Images")
-        # Create columns for image display
         img_cols = st.columns(min(len(uploaded_files), 3))
         for idx, file in enumerate(uploaded_files):
             with img_cols[idx % 3]:
@@ -224,7 +329,6 @@ with col1:
 with col2:
     st.subheader("📊 Analysis Results")
     
-    # Analyze button
     if uploaded_files:
         if st.button("🔍 Analyze House", type="primary", use_container_width=True):
             with st.spinner("Analyzing house images... This may take a moment."):
@@ -234,26 +338,43 @@ with col2:
                     for idx, uploaded_file in enumerate(uploaded_files):
                         st.info(f"Analyzing image {idx + 1}/{len(uploaded_files)}: {uploaded_file.name}")
                         
-                        # Open image with PIL
                         image = Image.open(uploaded_file)
                         
-                        # Get context including filename
                         context = f"Image: {uploaded_file.name}"
                         if additional_context:
                             context += f". {additional_context}"
                         
-                        # Run analysis
                         result = analyze_house_image(image, context)
                         all_results.append({
                             "filename": uploaded_file.name,
                             "analysis": result
                         })
                     
-                    # Display results
                     st.success("✅ Analysis Complete!")
                     
                     for result in all_results:
                         st.markdown(f"### 📄 {result['filename']}")
+                        
+                        # Detect classification for badge
+                        analysis_text = result['analysis'].lower()
+                        if 'low income' in analysis_text or 'desil 1-2' in analysis_text:
+                            badge_class = "low-income"
+                            badge_text = "🔴 Low Income (Desil 1-2)"
+                        elif 'lower-middle' in analysis_text or 'desil 3-4' in analysis_text:
+                            badge_class = "lower-middle"
+                            badge_text = "🟠 Lower-Middle (Desil 3-4)"
+                        elif 'upper-middle' in analysis_text or 'desil 7-8' in analysis_text:
+                            badge_class = "upper-middle"
+                            badge_text = "🔵 Upper-Middle (Desil 7-8)"
+                        elif 'high income' in analysis_text or 'desil 9-10' in analysis_text:
+                            badge_class = "high-income"
+                            badge_text = "🟢 High Income (Desil 9-10)"
+                        else:
+                            badge_class = "middle-income"
+                            badge_text = "🟡 Middle Income (Desil 5-6)"
+                        
+                        st.markdown(f'<span class="classification-badge {badge_class}">{badge_text}</span>', unsafe_allow_html=True)
+                        
                         st.markdown(f"""
                         <div class="result-box">
                         {result['analysis']}
@@ -273,8 +394,8 @@ with col2:
 
 # Footer
 st.divider()
-st.markdown("""
-<p style="text-align: center; color: #888; font-size: 0.9rem;">
+st.markdown(f"""
+<p style="text-align: center; color: {'#9ca3af' if st.session_state.theme == 'dark' else '#6b7280'}; font-size: 0.9rem;">
     Built with Streamlit + Google Gemini Vision AI | For Educational Purposes
     <br>
     <small>⚠️ This is a demo app. Classifications are AI estimates based on visual indicators only.</small>
