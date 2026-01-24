@@ -1,17 +1,56 @@
 import React, { useState, useCallback } from "react";
 import "@/App.css";
-import { Upload, Home, Loader2, CheckCircle, AlertCircle, X, Info } from "lucide-react";
+import { Upload, Home, Loader2, CheckCircle, AlertCircle, X, Info, TrendingUp, List, FileText } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Classification badge colors
-const classificationColors = {
-  "Low Income": "bg-red-100 text-red-800 border-red-300",
-  "Lower-Middle": "bg-orange-100 text-orange-800 border-orange-300",
-  "Middle": "bg-yellow-100 text-yellow-800 border-yellow-300",
-  "Upper-Middle": "bg-blue-100 text-blue-800 border-blue-300",
-  "High Income": "bg-green-100 text-green-800 border-green-300",
+const classificationStyles = {
+  "Low Income": { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/50", icon: "🔴" },
+  "Lower-Middle": { bg: "bg-orange-500/20", text: "text-orange-400", border: "border-orange-500/50", icon: "🟠" },
+  "Middle": { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
+  "Middle Income": { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/50", icon: "🟡" },
+  "Upper-Middle": { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/50", icon: "🔵" },
+  "High Income": { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/50", icon: "🟢" },
+};
+
+// Parse JSON from response text
+const parseAnalysisResult = (resultText) => {
+  if (!resultText) return null;
+  
+  try {
+    // Try to extract JSON from the response
+    const jsonMatch = resultText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[1]);
+    }
+    
+    // Try direct JSON parse
+    const jsonStart = resultText.indexOf('{');
+    const jsonEnd = resultText.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      const jsonStr = resultText.substring(jsonStart, jsonEnd + 1);
+      return JSON.parse(jsonStr);
+    }
+    
+    return null;
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    return null;
+  }
+};
+
+// Get classification style
+const getClassificationStyle = (classification) => {
+  if (!classification) return classificationStyles["Middle"];
+  
+  for (const key of Object.keys(classificationStyles)) {
+    if (classification.toLowerCase().includes(key.toLowerCase())) {
+      return classificationStyles[key];
+    }
+  }
+  return classificationStyles["Middle"];
 };
 
 function App() {
@@ -109,16 +148,81 @@ function App() {
     }
   };
 
-  // Parse classification from result text
-  const getClassification = (resultText) => {
-    if (!resultText) return null;
-    const patterns = ["Low Income", "Lower-Middle", "Middle Income", "Upper-Middle", "High Income"];
-    for (const pattern of patterns) {
-      if (resultText.includes(pattern)) {
-        return pattern === "Middle Income" ? "Middle" : pattern;
-      }
+  // Render parsed result
+  const renderParsedResult = (result) => {
+    const parsed = parseAnalysisResult(result.result);
+    
+    if (parsed) {
+      const style = getClassificationStyle(parsed.classification);
+      
+      return (
+        <div className="space-y-4">
+          {/* Classification Header */}
+          <div className={`${style.bg} ${style.border} border rounded-xl p-4`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{style.icon}</span>
+                <div>
+                  <h4 className={`text-lg font-bold ${style.text}`}>
+                    {parsed.classification}
+                  </h4>
+                  <p className="text-slate-400 text-sm">Desil {parsed.desil_range}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className={`text-2xl font-bold ${style.text}`}>
+                  {parsed.confidence_percentage}%
+                </div>
+                <p className="text-slate-400 text-xs">Confidence: {parsed.confidence}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Observations */}
+          {parsed.key_observations && parsed.key_observations.length > 0 && (
+            <div className="bg-slate-700/30 rounded-xl p-4">
+              <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+                <List className="w-4 h-4 text-emerald-400" />
+                Key Observations
+              </h5>
+              <ul className="space-y-2">
+                {parsed.key_observations.map((obs, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-slate-300 text-sm">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>{obs}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Detailed Reasoning */}
+          {parsed.detailed_reasoning && (
+            <div className="bg-slate-700/30 rounded-xl p-4">
+              <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" />
+                Detailed Analysis
+              </h5>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                {parsed.detailed_reasoning}
+              </p>
+            </div>
+          )}
+        </div>
+      );
     }
-    return null;
+    
+    // Fallback: show raw text if JSON parsing fails
+    return (
+      <div 
+        className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{ 
+          __html: result.result
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+            .replace(/\n/g, '<br/>')
+        }}
+      />
+    );
   };
 
   return (
@@ -229,7 +333,7 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-5 h-5" />
+                    <TrendingUp className="w-5 h-5" />
                     Analyze House
                   </>
                 )}
@@ -271,7 +375,10 @@ function App() {
           {/* Right Column - Results */}
           <div className="space-y-6">
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 min-h-[400px]">
-              <h2 className="text-lg font-semibold text-white mb-4">Analysis Results</h2>
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-400" />
+                Analysis Results
+              </h2>
               
               {results.length === 0 && !loading && (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-500">
@@ -290,49 +397,33 @@ function App() {
 
               {results.length > 0 && (
                 <div className="space-y-6">
-                  {results.map((result, index) => {
-                    const classification = getClassification(result.result);
-                    const colorClass = classification ? classificationColors[classification] : "bg-slate-100 text-slate-800";
-                    
-                    return (
-                      <div
-                        key={index}
-                        data-testid={`result-card-${index}`}
-                        className="bg-slate-700/30 rounded-xl p-5 border border-slate-600"
-                      >
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-white font-medium">{result.filename}</h3>
-                          {result.success ? (
-                            <CheckCircle className="w-5 h-5 text-emerald-400" />
-                          ) : (
-                            <AlertCircle className="w-5 h-5 text-red-400" />
-                          )}
-                        </div>
-                        
+                  {results.map((result, index) => (
+                    <div
+                      key={index}
+                      data-testid={`result-card-${index}`}
+                      className="bg-slate-700/30 rounded-xl p-5 border border-slate-600"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-white font-medium flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-slate-400" />
+                          {result.filename}
+                        </h3>
                         {result.success ? (
-                          <div className="space-y-4">
-                            {classification && (
-                              <div className="flex items-center gap-2">
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${colorClass}`}>
-                                  {classification}
-                                </span>
-                              </div>
-                            )}
-                            <div 
-                              className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap prose prose-invert prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ 
-                                __html: result.result
-                                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                  .replace(/\n/g, '<br/>')
-                              }}
-                            />
-                          </div>
+                          <CheckCircle className="w-5 h-5 text-emerald-400" />
                         ) : (
-                          <p className="text-red-400 text-sm">{result.error}</p>
+                          <AlertCircle className="w-5 h-5 text-red-400" />
                         )}
                       </div>
-                    );
-                  })}
+                      
+                      {result.success ? (
+                        renderParsedResult(result)
+                      ) : (
+                        <div className="bg-red-500/20 rounded-lg p-4">
+                          <p className="text-red-400 text-sm">{result.error}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
