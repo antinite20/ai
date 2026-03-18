@@ -9,18 +9,18 @@ import base64
 import asyncio
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 # Load environment variables
 load_dotenv()
 
-# Import the LLM integration
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+if GOOGLE_API_KEY:
+    genai.configure(api_key=GOOGLE_API_KEY)
 
 # ============================================
 # CONFIGURATION
 # ============================================
-API_KEY = os.environ.get("EMERGENT_LLM_KEY")
-
 # System prompt for house analysis
 SYSTEM_PROMPT = """Anda adalah seorang analis sosioekonomi ahli yang berspesialisasi dalam penilaian perumahan di Indonesia.
 
@@ -122,45 +122,17 @@ def encode_image_to_base64(uploaded_file):
 
 
 async def analyze_house_image(image_base64: str, additional_context: str = "") -> str:
-    """
-    Analyze house image using Gemini Vision AI
-    
-    Args:
-        image_base64: Base64 encoded image string
-        additional_context: Optional additional context about the image
-    
-    Returns:
-        Analysis result as string
-    """
-    # Create a new chat instance for each analysis
-    chat = LlmChat(
-        api_key=API_KEY,
-        session_id=f"house-analysis-{os.urandom(4).hex()}",
-        system_message=SYSTEM_PROMPT
-    )
-    
-    # Configure to use Gemini Flash
-    chat.with_model("gemini", "gemini-3-flash-preview")
-    
-    # Create image content
-    image_content = ImageContent(
-        image_base64=image_base64
-    )
-    
-    # Build the prompt
-    prompt = "Please analyze this house image and determine the socioeconomic status of the owner."
-    if additional_context:
-        prompt += f"\n\nAdditional context: {additional_context}"
-    
-    # Create message with image
-    user_message = UserMessage(
-        text=prompt,
-        file_contents=[image_content]
-    )
-    
-    # Send and get response
-    response = await chat.send_message(user_message)
-    return response
+    """Analyze a house image using Google Gemini Vision AI."""
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        prompt = SYSTEM_PROMPT
+        if additional_context:
+            prompt += f"\n\nKonteks tambahan: {additional_context}"
+
+        response = model.generate_content([prompt, image_base64])
+        return response.text if response and response.text else "Tidak ada respons dari AI"
+    except Exception as e:
+        return f"Kesalahan menganalisis gambar: {str(e)}"
 
 
 def run_async(coro):

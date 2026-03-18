@@ -11,17 +11,31 @@ import base64
 import asyncio
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 # Load environment variables
 load_dotenv()
 
-# Import the LLM integration
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
-
 # ============================================
 # CONFIGURATION
 # ============================================
-API_KEY = os.environ.get("EMERGENT_LLM_KEY")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+if GOOGLE_API_KEY:
+    genai.configure(api_key=GOOGLE_API_KEY)
+
+
+def analyze_house_image(image_base64: str, additional_context: str = "") -> str:
+    """Analyze a house image using Google Gemini Vision AI."""
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        prompt = SYSTEM_PROMPT
+        if additional_context:
+            prompt += f"\n\nKonteks tambahan: {additional_context}"
+
+        response = model.generate_content([prompt, image_base64])
+        return response.text if response and response.text else "Tidak ada respons dari AI"
+    except Exception as e:
+        return f"Kesalahan menganalisis gambar: {str(e)}"
 
 # System prompt for house analysis
 SYSTEM_PROMPT = """Anda adalah seorang analis sosioekonomi ahli yang berspesialisasi dalam penilaian perumahan di Indonesia.
@@ -155,7 +169,7 @@ def root():
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "healthy", "api_key_configured": bool(API_KEY)}
+    return {"status": "healthy", "api_key_configured": bool(GOOGLE_API_KEY)}
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
@@ -179,35 +193,13 @@ async def analyze_house(
         contents = await file.read()
         image_base64 = base64.b64encode(contents).decode('utf-8')
         
-        # Create chat instance
-        chat = LlmChat(
-            api_key=API_KEY,
-            session_id=f"house-analysis-{os.urandom(4).hex()}",
-            system_message=SYSTEM_PROMPT
-        )
-        chat.with_model("gemini", "gemini-3-flash-preview")
-        
-        # Create image content
-        image_content = ImageContent(image_base64=image_base64)
-        
-        # Build prompt
-        prompt = "Please analyze this house image and determine the socioeconomic status of the owner. Return your response in the JSON format specified."
-        if context:
-            prompt += f"\n\nAdditional context: {context}"
-        
-        # Create message with image
-        user_message = UserMessage(
-            text=prompt,
-            file_contents=[image_content]
-        )
-        
-        # Get response
-        response = await chat.send_message(user_message)
-        
+        # Analyze using Google Gemini Vision AI
+        result_text = analyze_house_image(image_base64, context or "")
+
         return AnalysisResponse(
             success=True,
             filename=file.filename,
-            result=response
+            result=result_text
         )
         
     except Exception as e:
