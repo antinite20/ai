@@ -1,0 +1,263 @@
+{
+  "training_data": [
+    {
+      "id": "desil_1_sample_1",
+      "category": "Low Income",
+      "desil_range": "1-2",
+      "description": "Very small house, wooden structure, deteriorating tin roof",
+      "visual_markers": {
+        "structure": "Very small (<25m²), 1 floor, cramped",
+        "materials": ["wood", "bamboo", "plastic"],
+        "roof": "Tin with rust and leaks",
+        "walls": "Unpainted, deeply cracked",
+        "condition": "Signs of extreme wear and neglect",
+        "yard": "Dirt ground, no fencing, debris visible",
+        "amenities": ["NO electricity meter", "NO water tank", "NO antenna"],
+        "interior": "If visible: basic/minimal furniture"
+      },
+      "confidence_indicators": [
+        "Extreme poverty signs",
+        "Multiple material failures",
+        "No basic utilities"
+      ],
+      "example_locations": ["Slum areas", "Informal settlements", "Rural poor regions"]
+    },
+    {
+      "id": "desil_2_sample_1",
+      "category": "Low Income",
+      "desil_range": "1-2",
+      "description": "Small makeshift house with basic brick and tin",
+      "visual_markers": {
+        "structure": "<30m², single room house",
+        "materials": ["poor quality brick", "wood"],
+        "roof": "Plastic/thin metal sheets",
+        "walls": "Minimal paint, visible cracks",
+        "condition": "Worn, patched repairs",
+        "yard": "Unpaved, no fence",
+        "amenities": ["Possibly basic electricity", "NO water tank"],
+        "interior": "Sparse, minimal possessions"
+      },
+      "confidence_indicators": [
+        "Poverty indicators present",
+        "Minimal maintenance",
+        "Few amenities"
+      ],
+      "example_locations": ["Suburban poor areas", "Rural villages"]
+    },
+    {
+      "id": "desil_3_sample_1",
+      "category": "Lower-Middle Income",
+      "desil_range": "3-4",
+      "description": "Simple house with mixed brick/wood, basic maintenance",
+      "visual_markers": {
+        "structure": "25-50m², 1 floor, simple layout",
+        "materials": ["Mix of brick and wood", "basic concrete blocks"],
+        "roof": "Basic asbestos or tin, some maintenance",
+        "walls": "Partially painted, minor cracks, simple finish",
+        "condition": "Maintained but shows wear, average upkeep",
+        "yard": "Simple paved or dirt with basic fence",
+        "amenities": ["Basic electricity", "Water tank may exist", "NO AC"],
+        "interior": "Basic furniture, simple finishes"
+      },
+      "confidence_indicators": [
+        "Working class appearance",
+        "Basic utilities present",
+        "Moderate maintenance"
+      ],
+      "example_locations": ["Working class neighborhoods", "Lower suburban areas"]
+    },
+    {
+      "id": "desil_4_sample_1",
+      "category": "Lower-Middle Income",
+      "desil_range": "3-4",
+      "description": "Small but maintained house with proper roof",
+      "visual_markers": {
+        "structure": "30-50m², 1 floor",
+        "materials": ["Good brick", "concrete blocks"],
+        "roof": "Basic ceramic tiles or asbestos, maintained",
+        "walls": "Well painted, few cracks, decent finish",
+        "condition": "Regularly maintained, relatively clean",
+        "yard": "Paved ground with fence",
+        "amenities": ["Electricity meter", "Water tank", "Antenna possible"],
+        "interior": "Modest furniture, basic modern amenities"
+      },
+      "confidence_indicators": [
+        "Stable lower-middle class",
+        "Regular maintenance evident",
+        "Basic modern features"
+      ],
+      "example_locations": ["Lower-middle class neighborhoods", "Suburban areas"]
+    },
+    {
+      "id": "desil_5_sample_1",
+      "category": "Middle Income",
+      "desil_range": "5-6",
+      "description": "Standard house with good materials and maintenance",
+      "visual_markers": {
+        "structure": "50-100m², 1-1.5 floors, multiple rooms",
+        "materials": ["Quality brick", "concrete blocks", "good finish"],
+        "roof": "Ceramic or concrete tiles, well-maintained",
+        "walls": "Well painted, minimal to no cracks, good quality finish",
+        "condition": "Well maintained, clean appearance",
+        "yard": "Properly fenced, paved ground, some landscaping",
+        "amenities": ["Electricity meter", "Water tank", "Satellite dish possible", "NO AC yet"],
+        "interior": "Decent furniture, good flooring, modern kitchen"
+      },
+      "confidence_indicators": [
+        "Stable middle class",
+        "Quality materials evident",
+        "Good maintenance standards"
+      ],
+      "example_locations": ["Middle class neighborhoods", "Residential suburbs"]
+    },
+    {
+      "id": "desil_6_sample_1",
+      "category": "Middle Income",
+      "desil_range": "5-6",
+      "description": "Well-built house with modern conveniences",
+      "visual_markers": {
+        "structure": "70-100m², 1.5-2 floors",
+        "materials": ["Quality concrete", "good brick", "professional finish"],
+        "roof": "Premium ceramic tiles, excellent condition",
+        "walls": "Professionally painted, no visible cracks, quality finish",
+        "condition": "Excellent maintenance, modern appearance",
+        "yard": "Properly designed, decent landscaping",
+        "amenities": ["Modern gate", "Water pump", "Solar water heater", "Basic security"],
+        "interior": "Quality furniture, good flooring, modern appliances"
+      },
+      "confidence_indicators": [
+        "Upper-middle class edge",
+        "Quality construction",
+        "Modern conveniences"
+      ],
+      "example_locations": ["Upper residential areas", "Planned communities"]
+    },
+    {
+      "id": "desil_7_sample_1",
+      "category": "Upper-Middle Income",
+      "desil_range": "7-8",
+      "description": "Large house with quality materials and modern amenities",
+      "visual_markers": {
+        "structure": "100-150m²+, 2 floors minimum, multiple rooms",
+        "materials": ["Reinforced concrete", "quality brick", "professional finishing"],
+        "roof": "Premium ceramic tiles or concrete, excellent condition",
+        "walls": "Professional paint job, no visible cracks, quality finish",
+        "condition": "Excellent maintenance, modern appearance, fresh paint",
+        "yard": "Decorative fencing, professional landscaping, proper design",
+        "amenities": ["Modern AC unit", "Modern gates", "Good outdoor lighting", "Water heater", "Satellite/cable"],
+        "interior": "Quality furniture, good flooring, modern kitchen and bathroom"
+      },
+      "confidence_indicators": [
+        "Professional/business owner class",
+        "Quality materials throughout",
+        "Modern amenities visible"
+      ],
+      "example_locations": ["Upper-middle class neighborhoods", "Gated communities"]
+    },
+    {
+      "id": "desil_8_sample_1",
+      "category": "Upper-Middle Income",
+      "desil_range": "7-8",
+      "description": "Large well-designed house with premium finishes",
+      "visual_markers": {
+        "structure": "120-160m²+, 2-3 floors, spacious rooms",
+        "materials": ["Premium concrete", "quality finishes", "professional design"],
+        "roof": "Premium ceramic or concrete, pristine condition",
+        "walls": "Professional finish, architectural details, perfect condition",
+        "condition": "Immaculate, luxury finishes, professional maintenance",
+        "yard": "Professional landscaping, decorative elements, quality fencing",
+        "amenities": ["Multiple AC units", "Modern security gate", "Driveway", "Good lighting", "Modern door intercom"],
+        "interior": "Premium furniture, quality flooring, modern luxury kitchen"
+      },
+      "confidence_indicators": [
+        "Upper-upper middle class",
+        "Professional design evident",
+        "Luxury amenities"
+      ],
+      "example_locations": ["Premium residential areas", "Exclusive neighborhoods"]
+    },
+    {
+      "id": "desil_9_sample_1",
+      "category": "High Income",
+      "desil_range": "9-10",
+      "description": "Luxury house with premium materials and extensive amenities",
+      "visual_markers": {
+        "structure": "150m²+, 2-3 floors, spacious and well-designed",
+        "materials": ["Premium imported materials", "marble elements", "quality stone"],
+        "roof": "Premium ceramic or imported materials, pristine condition",
+        "walls": "Professional architectural design, perfect condition",
+        "condition": "Luxury finishes, immaculate maintenance, designer touches",
+        "yard": "Professional landscaping, decorative elements, high-quality fence",
+        "amenities": ["Multiple AC units", "Solar panels", "Security system", "Modern driveway", "Premium gates"],
+        "interior": "Luxury furniture, marble flooring, professional kitchen, modern fixtures"
+      },
+      "confidence_indicators": [
+        "Wealth indicators clear",
+        "Professional design",
+        "Extensive amenities"
+      ],
+      "example_locations": ["Luxury neighborhoods", "Premium gated communities"]
+    },
+    {
+      "id": "desil_10_sample_1",
+      "category": "High Income",
+      "desil_range": "9-10",
+      "description": "Very luxury house with premium everything",
+      "visual_markers": {
+        "structure": "200m²+, 3-4 floors, mansion-like, spacious rooms",
+        "materials": ["Premium imported materials", "marble", "quality stone", "exotic wood"],
+        "roof": "Luxury imported materials, architectural design",
+        "walls": "Professional architect design, premium finishes, perfect condition",
+        "condition": "Luxury finishes, immaculate maintenance, showroom quality",
+        "yard": "Professional landscaping, fountain/garden features, high-end fence",
+        "amenities": ["Multiple AC units", "Solar panels", "Security system", "Driveway with garage", "Premium gates with intercom"],
+        "interior": "Luxury furniture, marble flooring, premium kitchen with modern appliances, luxury bathroom"
+      },
+      "confidence_indicators": [
+        "Clear wealth indicators",
+        "Professional architectural design",
+        "Premium everything",
+        "Extensive amenities"
+      ],
+      "example_locations": ["Ultra-premium neighborhoods", "Exclusive gated communities", "Luxury developments"]
+    }
+  ],
+  "feature_scoring": {
+    "structure_size": {
+      "<25m²": 2,
+      "25-50m²": 5,
+      "50-100m²": 8,
+      "100-150m²": 12,
+      "150m²+": 15
+    },
+    "materials": {
+      "wood_bamboo_plastic": 2,
+      "brick_tin": 5,
+      "concrete_ceramic": 10,
+      "marble_stone_imported": 15
+    },
+    "amenities": {
+      "no_amenities": 0,
+      "electricity_only": 5,
+      "electricity_water_tank": 8,
+      "ac_unit": 12,
+      "multiple_modern_amenities": 18,
+      "solar_security_system": 25
+    },
+    "condition": {
+      "poor": 2,
+      "fair": 8,
+      "good": 15,
+      "excellent": 20,
+      "luxury": 25
+    },
+    "yard_fencing": {
+      "dirt_no_fence": 0,
+      "paved_simple_fence": 5,
+      "proper_fenced": 10,
+      "landscaped": 15,
+      "professional_landscaping": 20
+    }
+  },
+  "note": "Use this data to train your AI model. Each example has visual markers that define each Desil level. The scoring system shows how to calculate economic scores 0-100."
+}
