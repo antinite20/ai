@@ -11,7 +11,7 @@ from datetime import datetime
 import json
 
 class HouseAnalyzerAPITester:
-    def __init__(self, base_url="https://ai-apps-factory-1.preview.emergentagent.com"):
+    def __init__(self, base_url="http://localhost:8001"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
